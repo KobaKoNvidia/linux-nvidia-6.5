@@ -12,22 +12,8 @@
 
 #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
 
-#include <linux/cacheinfo.h>
 #include <linux/cpu.h>
-#include <linux/debugfs.h>
-#include <linux/fs.h>
-#include <linux/fs_parser.h>
-#include <linux/sysfs.h>
-#include <linux/kernfs.h>
-#include <linux/seq_buf.h>
-#include <linux/seq_file.h>
-#include <linux/sched/signal.h>
-#include <linux/sched/task.h>
 #include <linux/slab.h>
-#include <linux/task_work.h>
-#include <linux/user_namespace.h>
-
-#include <uapi/linux/magic.h>
 
 #include <asm/resctrl.h>
 #include "internal.h"
@@ -1616,62 +1602,6 @@ void resctrl_arch_mon_event_config_read(void *info)
 	mon_info->mon_config = msrval & MAX_EVT_CONFIG_BITS;
 }
 
-static void mondata_config_read(struct resctrl_mon_config_info *mon_info)
-{
-	smp_call_function_any(&mon_info->d->cpu_mask,
-			      resctrl_arch_mon_event_config_read, mon_info, 1);
-}
-
-static int mbm_config_show(struct seq_file *s, struct rdt_resource *r, u32 evtid)
-{
-	struct resctrl_mon_config_info mon_info = {0};
-	struct rdt_domain *dom;
-	bool sep = false;
-
-	cpus_read_lock();
-	mutex_lock(&rdtgroup_mutex);
-
-	list_for_each_entry(dom, &r->domains, list) {
-		if (sep)
-			seq_puts(s, ";");
-
-		memset(&mon_info, 0, sizeof(struct resctrl_mon_config_info));
-		mon_info.r = r;
-		mon_info.d = dom;
-		mon_info.evtid = evtid;
-		mondata_config_read(&mon_info);
-
-		seq_printf(s, "%d=0x%02x", dom->id, mon_info.mon_config);
-		sep = true;
-	}
-	seq_puts(s, "\n");
-
-	mutex_unlock(&rdtgroup_mutex);
-	cpus_read_unlock();
-
-	return 0;
-}
-
-static int mbm_total_bytes_config_show(struct kernfs_open_file *of,
-				       struct seq_file *seq, void *v)
-{
-	struct rdt_resource *r = of->kn->parent->priv;
-
-	mbm_config_show(seq, r, QOS_L3_MBM_TOTAL_EVENT_ID);
-
-	return 0;
-}
-
-static int mbm_local_bytes_config_show(struct kernfs_open_file *of,
-				       struct seq_file *seq, void *v)
-{
-	struct rdt_resource *r = of->kn->parent->priv;
-
-	mbm_config_show(seq, r, QOS_L3_MBM_LOCAL_EVENT_ID);
-
-	return 0;
-}
-
 void resctrl_arch_mon_event_config_write(void *info)
 {
 	struct resctrl_mon_config_info *mon_info = info;
@@ -2301,11 +2231,6 @@ static void l2_qos_cfg_update(void *arg)
 	wrmsrl(MSR_IA32_L2_QOS_CFG, *enable ? L2_QOS_CDP_ENABLE : 0ULL);
 }
 
-static inline bool is_mba_linear(void)
-{
-	return resctrl_arch_get_resource(RDT_RESOURCE_MBA)->membw.delay_linear;
-}
-
 static int set_cache_qos_cfg(int level, bool enable)
 {
 	void (*update)(void *arg);
@@ -2359,97 +2284,6 @@ void rdt_domain_reconfigure_cdp(struct rdt_resource *r)
 
 	if (r->rid == RDT_RESOURCE_L3)
 		l3_qos_cfg_update(&hw_res->cdp_enabled);
-}
-
-static int mba_sc_domain_allocate(struct rdt_resource *r, struct rdt_domain *d)
-{
-	u32 num_closid = resctrl_arch_get_num_closid(r);
-	int cpu = cpumask_any(&d->cpu_mask);
-	int i;
-
-	/*
-	 * d->mbps_val is allocated by a call to this function in set_mba_sc(),
-	 * and domain_setup_mon_state(). Both calls are guarded by is_mba_sc(),
-	 * which can only return true while the filesystem is mounted. The
-	 * two calls are prevented from racing as rdt_get_tree() takes the
-	 * cpuhp read lock before calling rdt_enable_ctx(ctx), which prevents
-	 * it running concurrently with resctrl_online_domain().
-	 */
-	lockdep_assert_cpus_held();
-
-	d->mbps_val = kcalloc_node(num_closid, sizeof(*d->mbps_val),
-				   GFP_KERNEL, cpu_to_node(cpu));
-	if (!d->mbps_val)
-		return -ENOMEM;
-
-	for (i = 0; i < num_closid; i++)
-		d->mbps_val[i] = MBA_MAX_MBPS;
-
-	return 0;
-}
-
-static int mba_sc_allocate(struct rdt_resource *r)
-{
-	struct rdt_domain *d;
-	int ret = -EINVAL;
-
-	list_for_each_entry(d, &r->domains, list) {
-		ret = mba_sc_domain_allocate(r, d);
-		if (ret)
-			break;
-	}
-
-	return ret;
-}
-
-static void mba_sc_domain_destroy(struct rdt_resource *r,
-				  struct rdt_domain *d)
-{
-	kfree(d->mbps_val);
-	d->mbps_val = NULL;
-}
-
-static void mba_sc_destroy(struct rdt_resource *r)
-{
-	struct rdt_domain *d;
-
-	lockdep_assert_cpus_held();
-
-	list_for_each_entry(d, &r->domains, list)
-		mba_sc_domain_destroy(r, d);
-}
-
-/*
- * MBA software controller is supported only if
- * MBM is supported and MBA is in linear scale.
- */
-static bool supports_mba_mbps(void)
-{
-	struct rdt_resource *r = resctrl_arch_get_resource(RDT_RESOURCE_MBA);
-
-	return (resctrl_arch_is_mbm_local_enabled() &&
-		r->alloc_capable && is_mba_linear());
-}
-
-/*
- * Enable or disable the MBA software controller
- * which helps user specify bandwidth in MBps.
- */
-static int set_mba_sc(bool mba_sc)
-{
-	struct rdt_resource *r = resctrl_arch_get_resource(RDT_RESOURCE_MBA);
-
-	if (!supports_mba_mbps() || mba_sc == is_mba_sc(r))
-		return -EINVAL;
-
-	r->membw.mba_sc = mba_sc;
-
-	if (is_mba_sc(r))
-		return mba_sc_allocate(r);
-
-	mba_sc_destroy(r);
-
-	return 0;
 }
 
 static int cdp_enable(int level)

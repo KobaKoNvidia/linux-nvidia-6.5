@@ -378,11 +378,7 @@ static inline struct rdt_hw_resource *resctrl_to_arch_res(struct rdt_resource *r
 	return container_of(r, struct rdt_hw_resource, r_resctrl);
 }
 
-extern struct mutex rdtgroup_mutex;
-
 extern struct rdt_hw_resource rdt_resources_all[];
-extern struct rdtgroup rdtgroup_default;
-extern struct dentry *debugfs_resctrl;
 
 static inline struct rdt_resource *resctrl_inc(struct rdt_resource *res)
 {
@@ -446,61 +442,9 @@ union cpuid_0x10_x_edx {
 	unsigned int full;
 };
 
-void rdt_last_cmd_clear(void);
-void rdt_last_cmd_puts(const char *s);
-__printf(1, 2)
-void rdt_last_cmd_printf(const char *fmt, ...);
-
 void rdt_ctrl_update(void *arg);
-struct rdtgroup *rdtgroup_kn_lock_live(struct kernfs_node *kn);
-void rdtgroup_kn_unlock(struct kernfs_node *kn);
-int rdtgroup_kn_mode_restrict(struct rdtgroup *r, const char *name);
-int rdtgroup_kn_mode_restore(struct rdtgroup *r, const char *name,
-			     umode_t mask);
-ssize_t rdtgroup_schemata_write(struct kernfs_open_file *of,
-				char *buf, size_t nbytes, loff_t off);
-int rdtgroup_schemata_show(struct kernfs_open_file *of,
-			   struct seq_file *s, void *v);
-bool rdtgroup_cbm_overlaps(struct resctrl_schema *s, struct rdt_domain *d,
-			   unsigned long cbm, int closid, bool exclusive);
-unsigned int rdtgroup_cbm_to_size(struct rdt_resource *r, struct rdt_domain *d,
-				  unsigned long cbm);
-enum rdtgrp_mode rdtgroup_mode_by_closid(int closid);
-int rdtgroup_tasks_assigned(struct rdtgroup *r);
-int rdtgroup_locksetup_enter(struct rdtgroup *rdtgrp);
-int rdtgroup_locksetup_exit(struct rdtgroup *rdtgrp);
-bool rdtgroup_cbm_overlaps_pseudo_locked(struct rdt_domain *d, unsigned long cbm);
-bool rdtgroup_pseudo_locked_in_hierarchy(struct rdt_domain *d);
-int rdt_pseudo_lock_init(void);
-void rdt_pseudo_lock_release(void);
-int rdtgroup_pseudo_lock_create(struct rdtgroup *rdtgrp);
-void rdtgroup_pseudo_lock_remove(struct rdtgroup *rdtgrp);
-int closids_supported(void);
-void closid_free(int closid);
-int alloc_rmid(u32 closid);
-void free_rmid(u32 closid, u32 rmid);
 int rdt_get_mon_l3_config(struct rdt_resource *r);
-void mon_event_count(void *info);
-int rdtgroup_mondata_show(struct seq_file *m, void *arg);
-void mon_event_read(struct rmid_read *rr, struct rdt_resource *r,
-		    struct rdt_domain *d, struct rdtgroup *rdtgrp,
-		    int evtid, int first);
-int resctrl_mon_resource_init(void);
-void mbm_setup_overflow_handler(struct rdt_domain *dom,
-				unsigned long delay_ms,
-				int exclude_cpu);
-void mbm_handle_overflow(struct work_struct *work);
 void __init intel_rdt_mbm_apply_quirk(void);
-bool is_mba_sc(struct rdt_resource *r);
-void cqm_setup_limbo_handler(struct rdt_domain *dom, unsigned long delay_ms,
-			     int exclude_cpu);
-void cqm_handle_limbo(struct work_struct *work);
-bool has_busy_rmid(struct rdt_domain *d);
-void __check_limbo(struct rdt_domain *d, bool force_free);
 void rdt_domain_reconfigure_cdp(struct rdt_resource *r);
-void mbm_config_rftype_init(const char *config);
-void rdt_staged_configs_clear(void);
-bool closid_allocated(unsigned int closid);
-int resctrl_find_cleanest_closid(void);
 
 #endif /* _ASM_X86_RESCTRL_INTERNAL_H */
