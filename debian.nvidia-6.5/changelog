@@ -1,3 +1,167 @@
+linux-nvidia-6.5 (6.5.0-1007.8~MPAM+1) jammy; urgency=medium
+
+  * NVIDIA: SAUCE: iommu/arm-smmu-v3: Allow default substream bypass with a pasid support
+  * MPAM patches
+    - arm_mpam: Introduce resctrl_arch_mbm_has_long_counter()
+    - drivers/perf: Fix kernel panic due to the invalid mon_ctx pointer
+    - arm_mpam: Fix the build error in resctrl_arch_is_evt_configurable()
+    - arm64: mpam: Try and catch EL3 world-switch corrupting MPAM0_EL1
+    - arm_mpam: Add CPU PM notifier callback to restore MPAM0_EL1
+    - arm64: mpam: Restore the expected MPAM sysregs on cpuhp
+    - arm64: KVM: Don't reset all the MPAM system registers
+    - fs/resctrl: Debug print the PARTID allocated whena
+    - arm64: mpam: Report when the CPU system register isn't the value expected
+    - arm_mpam: Add cranky debug for reading CSU hardware values
+    - fs/resctrl: Add cranky debug for reading CPU msr values
+    - README: Add list of KNOWN_ISSUES
+    - MPAM: Fix calculating the bandwidth granularity
+    - arm_mpam: Add debugfs entries to show the MSC/RIS the driver discovered
+    - debugfs: Add helpers for creating cpumask entries in debugfs
+    - drivers/perf: Add PMU to support reading resctrl counters via perf
+    - FIXME arm_mpam: Make mpam_msmon_read() safe for irq-masked callers
+    - arm_mpam: Allow MBWU counters to be used, even when not free running
+    - arm_mpam: Allow the maximum partid to be overridden from the command line
+    - fs/resctrl: Add support for assigning iommu_groups to resctrl groups
+    - x86/resctrl: Add stubs for the IOMMU helpers
+    - arm_mpam: resctrl: Add iommu helpers to get/set the partid and pmg
+    - kobject: Add kset_get_next_obj() to allow a kset to be walked
+    - iommu: Add helpers to walk iommu_group and access corresponding ops
+    - iommu/arm-smmu-v3: Add mpam helpers to query and set state
+    - iommu/arm-smmu-v3: Register SMMU capabilities with MPAM
+    - fs/resctrl: cgroup: Add resctrl cgroup controller
+    - fs/resctrl: Export the closid/rmid to user-space
+    - fs/resctrl: Add this_is_not_abi mount option
+    - arm_mpam: resctrl: Update the rmid reallocation limit
+    - arm_mpam: resctrl: Call resctrl_exit() in the event of errors
+    - arm_mpam: resctrl: Tell resctrl about cpu/domain online/offline
+    - arm64: mpam: Select ARCH_HAS_CPU_RESCTRL
+    - arm_mpam: resctrl: Add dummy definition for free running counters
+    - arm_mpam: resctrl: Add empty definitions for fine-grained enables
+    - arm_mpam: resctrl: Add empty definitions for pseudo lock
+    - untested: arm_mpam: resctrl: Allow monitors to be configured
+    - arm_mpam: resctrl: Add resctrl_arch_rmid_read() and resctrl_arch_reset_rmid()
+    - arm_mpam: resctrl: Allow resctrl to allocate monitors
+    - untested: arm_mpam: resctrl: Add support for mbm counters
+    - untested: arm_mpam: resctrl: Add support for MB resource
+    - arm_mpam: resctrl: Add rmid index helpers
+    - arm64: mpam: Add helpers to change a tasks and cpu mpam partid/pmg values
+    - arm_mpam: resctrl: Add CDP emulation
+    - arm64: mpam: Context switch the MPAM registers
+    - arm_mpam: resctrl: Implement helpers to update configuration
+    - arm_mpam: resctrl: Add resctrl_arch_get_config()
+    - arm_mpam: resctrl: Implement resctrl_arch_reset_resources()
+    - arm_mpam: resctrl: Pick a value for num_rmid
+    - arm_mpam: resctrl: Pick the caches we will use as resctrl resources
+    - arm_mpam: resctrl: Add boilerplate cpuhp and domain allocation
+    - arm_mpam: Add helper to reset saved mbwu state
+    - arm_mpam: Fix ID allocation upper limit for monitors
+    - arm_mpam: Use long MBWU counters if supported
+    - arm_mpam: Probe for long/lwd mbwu counters
+    - arm_mpam: Track bandwidth counter state for overflow and power management
+    - arm_mpam: Add mpam_msmon_read() to read monitor value
+    - arm_mpam: Add helpers to allocate monitors
+    - arm_mpam: Probe and reset the rest of the features
+    - arm_mpam: Allow configuration to be applied and restored during cpu online
+    - arm_mpam: Add static key to indicate when mpam is enabled
+    - arm_mpam: Register and enable IRQs
+    - arm_mpam: Extend reset logic to allow devices to be reset any time
+    - arm_mpam: Add a helper to touch an MSC from any CPU
+    - arm_mpam: Reset MSC controls from cpu hp callbacks
+    - arm_mpam: Merge supported features during mpam_enable() into mpam_class
+    - arm_mpam: update feature page boundary checks
+    - arm_mpam: Probe the hardware features resctrl supports
+    - arm_mpam: Probe MSCs to find the supported partid/pmg values
+    - arm_mpam: Add cpuhp callbacks to probe MSC hardware
+    - arm_mpam: Add MPAM MSC register layout definitions
+    - arm_mpam: Add the class and component structures for ris firmware described
+    - arm_mpam: Assign msc id early into driver probe
+    - arm_mpam: Add probe/remove for mpam msc driver and kbuild boiler plate
+    - cacheinfo: Expose the code to generate a cache-id from a device_node
+    - cacheinfo: Set cache 'id' based on DT data
+    - cacheinfo: Allow for >32-bit cache 'id'
+    - drivers: base: cacheinfo: Add helper to find the cache size from cpu+level
+    - drivers: base: cacheinfo: Check per_cpu_cacheinfo() is allocated
+    - dt-bindings: arm: Add MPAM MSC binding
+    - ACPI / MPAM: Parse the MPAM table
+    - untested: KVM: arm64: Force guest EL1 to use user-space's partid configuration
+    - ACPI / PPTT: Caller initialize 'levels' for 'acpi_count_level'
+    - ACPI / PPTT: Start cache search from level '1'
+    - ACPI / PPTT: Add a helper to fill a cpumask from a cache_id
+    - ACPI / PPTT: Add a helper to fill a cpumask from a processor container
+    - ACPI / PPTT: Find PPTT cache level by ID
+    - ACPI / irq: Add acpi_register_partitioned_percpu_gsi()
+    - irqchip/gic-v3: select and translate the partition domain
+    - irqchip/gic-v3: Build PPI partitions on ACPI systems
+    - irqchip/gic-v3: Print DT partitions in the same way as APCI
+    - ACPI / PPTT: Add a helper to build a cpumask from a cpu_node
+    - ACPI / PPTT: Provide a helper to walk processor containers
+    - irqchip/gic, gic-v3: Translate fwspec for DT and ACPI systems in the same way
+    - ACPI/irq: Apply ACPI_IRQCHIP_FWSPEC_ARG0 only for GSI domain
+    - ACPI / irq: Allow a compile-time arg0 for acpi_register_gsi()'s fwspec
+    - irqchip/gic: Collect GIC_IRQ_TYPE definitions into one place
+    - irqchip/gic-v3: Move partition_create_desc() work to a helper
+    - FIXME: KVM: arm64: Trap guest accesses to the MPAM registers
+    - arm64: cpufeature: discover CPU support for MPAM
+    - arm64: head.S: Initialise MPAM EL2 registers and disable traps
+    - Documentation/admin-guide/acpi: Move information out of shell script comments
+    - fs/resctrl: Add helper to query if counters are free running
+    - fs/resctrl: Split resctrl_arch_mon_ctx_alloc() to have a no_wait version
+    - fs/resctrl: extend resource control group to 128
+    - x86/resctrl: Move all the filesystem code to /fs/resctrl
+    - x86/resctrl: Move the filesystem bits to headers visible to fs/resctrl
+    - fs/resctrl: Add boiler plate for external resctrl code
+    - x86/resctrl: Drop __init/__exit on assorted symbols
+    - x86/resctrl: Describe resctrl's bitmap size assumptions
+    - x86/resctrl: Claim get_domain_from_cpu() for resctrl
+    - x86/resctrl: Move get_config_index() to a header
+    - x86/resctrl: Move thread_throttle_mode_init() to be managed by resctrl
+    - x86/resctrl: Make resctrl_arch_pseudo_lock_fn() take a plr
+    - x86/resctrl: Make prefetch_disable_bits belong to the arch code
+    - x86/resctrl: Allow an architecture to disable pseudo lock
+    - x86/resctrl: Allow resctrl_arch_mon_event_config_write() to return an error
+    - x86/resctrl: Change mon_event_config_{read,write}() to be arch helpers
+    - x86/resctrl: Add resctrl_arch_is_evt_configurable() to abstract BMEC
+    - x86/resctrl: Export the is_mbm_*_enabled() helpers to asm/resctrl.h
+    - x86/resctrl: Stop using the for_each_*_rdt_resource() walkers
+    - x86/resctrl: Move max_{name,data}_width into resctrl code
+    - x86/resctrl: Move monitor init work to a resctrl init call
+    - x86/resctrl: Add a resctrl helper to reset all the resources
+    - x86/resctrl: Move resctrl types to a separate header
+    - x86/resctrl: Wrap resctrl_arch_find_domain() around rdt_find_domain()
+    - x86/resctrl: Export resctrl fs's init function
+    - x86/resctrl: Remove rdtgroup from update_cpu_closid_rmid()
+    - x86/resctrl: Add helper for setting cpu default properties
+    - x86/resctrl: Move ctrlval string parsing links away from the arch code
+    - x86/resctrl: Add a helper to avoid reaching into the arch code resource list
+    - x86/resctrl: massage comment in rdtgroup_locksetup_enter()
+    - x86/resctrl: Only allocate mbps_val[] when it is going to be used
+    - x86/resctrl: Separate arch and fs resctrl locks
+    - x86/resctrl: Move domain helper migration into resctrl_offline_cpu()
+    - x86/resctrl: Add cpu offline callback for resctrl work
+    - x86/resctrl: Allow overflow/limbo handlers to be scheduled on any-but cpu
+    - x86/resctrl: Add cpu online callback for resctrl work
+    - x86/resctrl: Add helpers for system wide mon/alloc capable
+    - x86/resctrl: Make rdt_enable_key the arch's decision to switch
+    - x86/resctrl: Move alloc/mon static keys into helpers
+    - x86/resctrl: Make resctrl_mounted checks explicit
+    - x86/resctrl: Allow arch to allocate memory needed in resctrl_arch_rmid_read()
+    - x86/resctrl: Allow resctrl_arch_rmid_read() to sleep
+    - x86/resctrl: Queue mon_event_read() instead of sending an IPI
+    - x86/resctrl: Make resctrl_arch_rmid_read() retry when it is interrupted
+    - x86/resctrl: Add cpumask_any_housekeeping() for limbo/overflow
+    - tick/nohz: Move tick_nohz_full_mask declaration outside the #ifdef
+    - x86/resctrl: Move CLOSID/RMID matching and setting to use helpers
+    - x86/resctrl: Allocate the cleanest CLOSID by searching closid_num_dirty_rmid
+    - x86/resctrl: Use set_bit()/clear_bit() instead of open coding
+    - x86/resctrl: Track the number of dirty RMID a CLOSID has
+    - x86/resctrl: Allow RMID allocation to be scoped by CLOSID
+    - x86/resctrl: Move rmid allocation out of mkdir_rdt_prepare()
+    - x86/resctrl: Create helper for RMID allocation and mondata dir creation
+    - x86/resctrl: Access per-rmid structures by index
+    - x86/resctrl: Track the closid with the rmid
+
+ -- Brad Figg <bfigg@nvidia.com>  Thu, 30 Nov 2023 03:46:09 -0800
+
 linux-nvidia-6.5 (6.5.0-1007.7) jammy; urgency=medium
 
   * jammy/linux-nvidia-6.5: 6.5.0-1007.7 -proposed tracker (LP: #2045591)
