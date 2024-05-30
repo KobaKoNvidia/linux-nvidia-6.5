@@ -282,6 +282,67 @@ static int __init early_mem(char *p)
 }
 early_param("mem", early_mem);
 
+
+static int need_remove_real_memblock __initdata;
+
+static void __init parse_memmap_one(char *p)
+{
+	char *oldp;
+	unsigned long start_at, mem_size;
+
+	if (!p)
+		return;
+
+	if (!strncmp(p, "exactmap", 8)) {
+		need_remove_real_memblock = 1;
+		return;
+	}
+
+	oldp = p;
+	mem_size = memparse(p, &p);
+	if (p == oldp)
+		return;
+
+	switch (*p) {
+	case '@':
+		start_at = memparse(p + 1, &p);
+		/*
+		 * use the exactmap defined by nn[KMG]@ss[KMG], remove
+		 * memblock populated by DT etc.
+		 */
+		if (need_remove_real_memblock) {
+			need_remove_real_memblock = 0;
+			memblock_remove(0, ULLONG_MAX);
+		}
+		memblock_add(start_at, mem_size);
+		break;
+	case '$':
+		start_at = memparse(p + 1, &p);
+		memblock_reserve(start_at, mem_size);
+		break;
+	default:
+		pr_warn("Unrecognized memmap syntax: %s\n", p);
+		break;
+	}
+}
+
+static int __init parse_memmap_opt(char *str)
+{
+	while (str) {
+		char *k = strchr(str, ',');
+
+		if (k)
+			*k++ = 0;
+
+		parse_memmap_one(str);
+		str = k;
+	}
+
+	return 0;
+}
+early_param("memmap", parse_memmap_opt);
+
+
 void __init arm64_memblock_init(void)
 {
 	s64 linear_region_size = PAGE_END - _PAGE_OFFSET(vabits_actual);
